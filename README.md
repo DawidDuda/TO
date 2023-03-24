@@ -1,4 +1,4 @@
 # TO
 Projekt
-Object CSV Mapper
-Narzędzie do zapisywania, odczytania, weryfikacji zgodności zawartości w pliku CSV.
+Object CSV Mapper \n
+Narzędzie do zapisywania, odczytania, weryfikacji zgodności zawartości w pliku CSV. 
