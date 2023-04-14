@@ -1,5 +1,5 @@
 import csv
-
+        
 class ObjectCSVMapper:
     def __init__(self, fields):
         self.fields = fields
@@ -9,20 +9,34 @@ class ObjectCSVMapper:
         for field in self.fields:
             value = getattr(obj, field)
             if isinstance(value, list):
-                value = ';'.join(value)
+                value = ';'.join(map(str, value))
+            elif isinstance(value, dict):
+                value = ','.join([f"{k}:{v}" for k, v in value.items()])
+            elif isinstance(value, tuple):
+                value = ','.join(str(x) for x in value)
+            elif isinstance(value, set):
+                value = ';'.join(map(str, value))
             elif not isinstance(value, str):
                 value = str(value)
             row.append(value)
         return row
     
-    def from_csv(self, row):
+    @classmethod
+    def from_csv(cls, row, fields):
         obj = type('', (), {})()
-        for i, field in enumerate(self.fields):
+        for i, field in enumerate(fields):
             value = row[i]
             if ';' in value:
                 value = value.split(';')
+            elif ',' in value:
+                items = value.split(',')
+                if ':' in items[0]:
+                    value = {k: v for k, v in [x.split(':') for x in items]}
+                else:
+                    value = tuple(items)
             setattr(obj, field, value)
         return obj
+
     
     def to_csv_list(self, lst):
         csv_rows = []
@@ -51,28 +65,38 @@ class ObjectCSVMapper:
         objs = []
         with open(filename, 'r', newline='') as csvfile:
             reader = csv.reader(csvfile)
-            next(reader)
+            fields = next(reader)
             for row in reader:
-                obj = self.from_csv(row)
+                obj = self.from_csv(row, fields)
                 objs.append(obj)
         return objs
 
 
 class Person:
-    def __init__(self, name, age, hobbies):
+    def __init__(self, name, age, hobbies, favorite_books, contact_info):
         self.name = name
         self.age = age
         self.hobbies = hobbies
-        
+        self.favorite_books = favorite_books
+        self.contact_info = contact_info
+
 people = [
-    Person('Alice', 25, ['reading', 'hiking']),
-    Person('Bob', 30, ['gaming', 'cooking']),
-    Person('Charlie', 35, ['traveling'])
+    Person("John", 25, ["reading", "hiking"], {"fiction": "1984", "non-fiction": "The Art of Thinking Clearly"}, ("john@example.com", "555-1234")),
+    Person("Jane", 30, ["swimming", "dancing"], {"fiction": "Pride and Prejudice", "non-fiction": "Sapiens"}, ("jane@example.com", "555-5678")),
+    Person("Bob", 40, ["gardening", "cooking"], {"fiction": "The Great Gatsby", "non-fiction": "Atomic Habits"}, ("bob@example.com", "555-9101")),
 ]
 
-mapper = ObjectCSVMapper(['name', 'age', 'hobbies'])
-mapper.to_csv_file(people, 'people.csv')
+# create an instance of ObjectCSVMapper with the desired fields
+mapper = ObjectCSVMapper(["name", "age", "hobbies", "favorite_books", "contact_info"])
 
-loaded_people = mapper.from_csv_file('people.csv')
-for person in loaded_people:
-    print(person.name, person.age, person.hobbies)
+# write the objects to a CSV file
+mapper.to_csv_file(people, "people.csv")
+
+# read the CSV file back into a list of objects
+people_from_csv = mapper.from_csv_file("people.csv")
+
+# print the list of objects
+for person in people_from_csv:
+    print(person.name, person.age, person.hobbies, person.favorite_books, person.contact_info)
+
+
