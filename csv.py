@@ -100,8 +100,8 @@ class Address:
         
 add = [
        Address("id_1", "Wall st.", "New York"),
-       Address("id_2", "Wall st.", "New York"),
-       Address("id_3", "Wall st.", "New York"),
+       Address("id_2", "Rodeo Drive", "Los Angeles"),
+       Address("id_3", "Main st.", "Dallas"),
        ]
 mapper1 = ObjectCSVMapper(["a_id", "street", "city"])
 
